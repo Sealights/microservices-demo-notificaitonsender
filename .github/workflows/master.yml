@@ -1,0 +1,81 @@
+name: Build, push image, trigger tests
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+          
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+  
+env:
+  GH_TOKEN: ${{ secrets.GH_PAT }}
+  GH_USER_NAME: ${{ secrets.GH_USER_NAME }}
+  GH_USER_EMAIL: ${{ secrets.GH_USER_EMAIL }}
+  INITIATOR: "notificaiton"
+  ECR_REPOSITORY: microservices-demo-notificaitonsender
+  GH_DEPLOYMENT_REPO: "Sealights/microservices-demo-notificaitonsender.git"
+  
+jobs:
+  build-test-push:
+    runs-on: ubuntu-latest
+    steps:         
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - uses: actions/checkout@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_US_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_US_SECRET_ACCESS_KEY }}
+          aws-region: us-east-2
+
+      - name: Install yq
+        run: |
+          mkdir yq
+          wget https://github.com/mikefarah/yq/releases/download/v4.25.2/yq_linux_386 -O ~/yq 
+          #-O /usr/bin/yq 
+          #chmod +x /usr/bin/yq
+          chmod +x yq
+          alias yq="~./yq"
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Bump version and push tag
+        id: tag_version
+        uses: mathieudutour/github-tag-action@v6.0
+        with:
+          github_token: ${{ secrets.GH_PAT }}
+          
+      - name: Build container and test
+        id: build_container
+        #if: github.event_name != 'pull_request'
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ steps.tag_version.outputs.new_tag }}
+          TARGET_BRANCH: "${{ github.event.pull_request.base.ref }}"
+          BUILD_NAME: "${{ steps.tag_version.outputs.new_tag }}"
+        run: |                           
+          export REPO_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}"
+          export LATEST_COMMIT="${GITHUB_SHA}"
+          export TARGET_BRANCH="$TARGET_BRANCH"
+          export PR_NUMBER="${{ github.event.number }}"
+          if [[ ${{ github.event_name }} == "pull_request" ]]; then export IS_PR=1; else export IS_PR=0; fi;
+          
+          echo "REPO_URL: ${REPO_URL}"  
+          echo "LATEST_COMMIT: ${LATEST_COMMIT}"  
+          echo "TARGET_BRANCH: ${TARGET_BRANCH}"  
+          echo "PR_NUMBER: ${PR_NUMBER}"
+          echo "EVENT NAME: ${{ github.event_name }}"
+          echo "IS_PR: ${IS_PR}"
+          
+          docker build --build-arg RM_DEV_SL_TOKEN=${{ secrets.RM_DEV_SL_TOKEN }} --build-arg IS_PR="$IS_PR" --build-arg BUILD_NAME="$BUILD_NAME" --build-arg TARGET_BRANCH="$TARGET_BRANCH" \
+            --build-arg LATEST_COMMIT="$LATEST_COMMIT" --build-arg PR_NUMBER="$PR_NUMBER" --build-arg TARGET_REPO_URL="$REPO_URL" -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .       
+          
+   
