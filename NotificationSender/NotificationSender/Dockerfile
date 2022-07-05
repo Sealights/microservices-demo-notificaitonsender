@@ -56,11 +56,11 @@ RUN rm sealights-dotnet-agent-3.0.1-beta.hotfix-portable.tar.gz
 
 RUN if [ $IS_PR = 0 ]; then \
     echo "Check-in to repo"; \
-    dotnet SL.DotNet.dll config --token $RM_DEV_SL_TOKEN --appName notificationsender --includedAssemblies "NotificaitonSender*" --branchName master \ 
+    dotnet SL.DotNet.dll config --token $RM_DEV_SL_TOKEN --appName notificationsender --includedAssemblies "NotificationSender*" --branchName master \ 
     	--buildName $BUILD_NAME --includeNamespace "NotificaitonSender.*" --excludeNamespace Microsoft ; \
 else \ 
     echo "Pull request"; \
-    dotnet SL.DotNet.dll prConfig --token $RM_DEV_SL_TOKEN --appname notificationsender --includedAssemblies "NotificaitonSender*" --targetBranch "${TARGET_BRANCH}" \
+    dotnet SL.DotNet.dll prConfig --token $RM_DEV_SL_TOKEN --appname notificationsender --includedAssemblies "NotificationSender*" --targetBranch "${TARGET_BRANCH}" \
     	--includeNamespace "NotificaitonSender.*" --excludeNamespace Microsoft --latestCommit "${LATEST_COMMIT}" --pullRequestNumber "${PR_NUMBER}" --repositoryUrl "${TARGET_REPO_URL}" ; \
 fi
 
