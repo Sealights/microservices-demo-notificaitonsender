@@ -39,9 +39,9 @@ RUN echo "repositoryUrl ${TARGET_REPO_URL}"
 RUN echo "========================================================="
 
 WORKDIR /app
-COPY NotificationSender.csproj .
+COPY /NotificationSender/NotificationSender/NotificationSender.csproj .
 RUN dotnet restore NotificationSender.csproj -r linux-musl-x64
-COPY . .
+COPY /NotificationSender/NotificationSender/ .
 RUN dotnet publish NotificationSender.csproj -p:PublishSingleFile=true -r linux-musl-x64 --self-contained true -p:PublishTrimmed=True -p:TrimMode=Link -c release -o /notificationsender --no-restore
 
 WORKDIR /notificationsender
