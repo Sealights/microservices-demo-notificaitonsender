@@ -43,28 +43,28 @@ RUN echo "repositoryUrl ${TARGET_REPO_URL}"
 RUN echo "========================================================="
 
 WORKDIR /app
-COPY NotificaitonSender.csproj .
-RUN dotnet restore NotificaitonSender.csproj -r linux-musl-x64
+COPY NotificationSender.csproj .
+RUN dotnet restore NotificationSender.csproj -r linux-musl-x64
 COPY . .
-RUN dotnet publish NotificaitonSender.csproj -p:PublishSingleFile=true -r linux-musl-x64 --self-contained true -p:PublishTrimmed=True -p:TrimMode=Link -c release -o /notificaitonsender --no-restore
+RUN dotnet publish NotificationSender.csproj -p:PublishSingleFile=true -r linux-musl-x64 --self-contained true -p:PublishTrimmed=True -p:TrimMode=Link -c release -o /notificationsender --no-restore
 
-WORKDIR /notificaitonsender
+WORKDIR /notificationsender
 ADD https://sl-repo-dev.s3.us-east-1.amazonaws.com/sealights-dotnet-agent-3.0.1-beta.hotfix-portable.tar.gz sealights-dotnet-agent-3.0.1-beta.hotfix-portable.tar.gz
 RUN tar -xvzf sealights-dotnet-agent-3.0.1-beta.hotfix-portable.tar.gz
-RUN mv -v /notificaitonsender/sealights-dotnet-agent-3.0.1-beta.hotfix-portable/* /notificaitonsender/
+RUN mv -v /notificationsender/sealights-dotnet-agent-3.0.1-beta.hotfix-portable/* /notificationsender/
 RUN rm sealights-dotnet-agent-3.0.1-beta.hotfix-portable.tar.gz
 
 RUN if [ $IS_PR = 0 ]; then \
     echo "Check-in to repo"; \
-    dotnet SL.DotNet.dll config --token $RM_DEV_SL_TOKEN --appName notificaitonsender --includedAssemblies "notificaitonsender*" --branchName master \ 
-    	--buildName $BUILD_NAME --includeNamespace "notificaitonsender.*" --excludeNamespace Microsoft ; \
+    dotnet SL.DotNet.dll config --token $RM_DEV_SL_TOKEN --appName notificationsender --includedAssemblies "NotificaitonSender*" --branchName master \ 
+    	--buildName $BUILD_NAME --includeNamespace "NotificaitonSender.*" --excludeNamespace Microsoft ; \
 else \ 
     echo "Pull request"; \
-    dotnet SL.DotNet.dll prConfig --token $RM_DEV_SL_TOKEN --appname notificaitonsender --includedAssemblies "notificaitonsender*" --targetBranch "${TARGET_BRANCH}" \
-    	--includeNamespace "notificaitonsender.*" --excludeNamespace Microsoft --latestCommit "${LATEST_COMMIT}" --pullRequestNumber "${PR_NUMBER}" --repositoryUrl "${TARGET_REPO_URL}" ; \
+    dotnet SL.DotNet.dll prConfig --token $RM_DEV_SL_TOKEN --appname notificationsender --includedAssemblies "NotificaitonSender*" --targetBranch "${TARGET_BRANCH}" \
+    	--includeNamespace "NotificaitonSender.*" --excludeNamespace Microsoft --latestCommit "${LATEST_COMMIT}" --pullRequestNumber "${PR_NUMBER}" --repositoryUrl "${TARGET_REPO_URL}" ; \
 fi
 
-RUN dotnet SL.DotNet.dll scan --buildSessionIdFile buildSessionId --binDir /app/bin/Debug/net6.0 --token $RM_DEV_SL_TOKEN --ignoreGeneratedCode true
+RUN dotnet SL.DotNet.dll scan --buildSessionIdFile buildSessionId --binDir /app/bin/release/net6.0 --token $RM_DEV_SL_TOKEN --ignoreGeneratedCode true
 
 # https://mcr.microsoft.com/v2/dotnet/runtime-deps/tags/list
 FROM mcr.microsoft.com/dotnet/runtime-deps:6.0.3-alpine3.15-amd64
@@ -79,7 +79,7 @@ ENV AWS_US_SECRET_ACCESS_KEY ${AWS_US_SECRET_ACCESS_KEY}
 
 WORKDIR /app
 
-COPY --from=builder /notificaitonsender .
+COPY --from=builder /notificationsender .
 
 ENV ASPNETCORE_URLS http://*:7080
-ENTRYPOINT ["/app/notificaitonsender"]
+ENTRYPOINT ["/app/NotificationSender"]
