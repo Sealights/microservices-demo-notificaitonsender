@@ -38,7 +38,7 @@ RUN echo "pullRequestNumber ${PR_NUMBER}"
 RUN echo "repositoryUrl ${TARGET_REPO_URL}"
 RUN echo "========================================================="
 
-WORKDIR /app
+WORKDIR /NotificationSender
 COPY /NotificationSender/NotificationSender/NotificationSender.csproj .
 RUN dotnet restore NotificationSender.csproj -r linux-musl-x64
 COPY /NotificationSender/NotificationSender/ .
@@ -66,10 +66,10 @@ else \
     	--includeNamespace "NotificaitonSender.*" --excludeNamespace Microsoft --latestCommit "${LATEST_COMMIT}" --pullRequestNumber "${PR_NUMBER}" --repositoryUrl "${TARGET_REPO_URL}" ; \
 fi
 
-RUN dotnet SL.DotNet.dll scan --buildSessionIdFile buildSessionId --binDir /tests/bin/release/net6.0 --token $RM_DEV_SL_TOKEN --ignoreGeneratedCode true
+RUN dotnet SL.DotNet.dll scan --buildSessionIdFile buildSessionId --binDir /tests/bin/Debug/net6.0 --token $RM_DEV_SL_TOKEN --ignoreGeneratedCode true
 
 RUN dotnet SL.DotNet.dll startExecution --buildSessionIdFile buildSessionId --labid=integ_master_813e_SLBoutique --token $RM_DEV_SL_TOKEN --testStage "Unit Tests"
-RUN dotnet SL.DotNet.dll testListener --buildSessionIdFile buildSessionId --labid=integ_master_813e_SLBoutique --token $RM_DEV_SL_TOKEN --workingDir /tests/bin/Debug/net6.0 --target dotnet --targetArgs " test cartservice.tests.dll " || true
+RUN dotnet SL.DotNet.dll testListener --buildSessionIdFile buildSessionId --labid=integ_master_813e_SLBoutique --token $RM_DEV_SL_TOKEN --workingDir /tests/bin/Debug/net6.0 --target dotnet --targetArgs " test NotificationSenderTest.dll " || true
 RUN dotnet SL.DotNet.dll endExecution --buildSessionIdFile buildSessionId --labid=integ_master_813e_SLBoutique --token $RM_DEV_SL_TOKEN  --testStage "Unit Tests"
 
 # https://mcr.microsoft.com/v2/dotnet/runtime-deps/tags/list
