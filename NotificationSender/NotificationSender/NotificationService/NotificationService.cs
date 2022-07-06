@@ -64,7 +64,7 @@ namespace NotificaitonSender.NotificationService
                             if (ProcessMessage(msg.Messages[0]))
                                 await DeleteMessage(sqsClient, msg.Messages[0], awsConfigs.AwsSqsQueueUrl);
                         }
-                    } while (!Console.KeyAvailable);
+                    } while (true);
                 }
                 catch (Exception e)
                 {
