@@ -27,6 +27,7 @@ namespace NotificaitonSender
             services.AddOpenTelemetryTracing((builder) => builder
              .AddAspNetCoreInstrumentation()
              .AddHttpClientInstrumentation()
+             .AddAWSInstrumentation()
              .AddOtlpExporter(o =>
              {
                  o.Protocol = OtlpExportProtocol.HttpProtobuf;
