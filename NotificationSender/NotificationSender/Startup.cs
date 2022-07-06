@@ -27,7 +27,6 @@ namespace NotificaitonSender
             services.AddOpenTelemetryTracing((builder) => builder
              .AddAspNetCoreInstrumentation()
              .AddHttpClientInstrumentation()
-             .AddXRayTraceId()
              .AddAWSInstrumentation()
              .AddOtlpExporter(o =>
              {
