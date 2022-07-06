@@ -38,11 +38,17 @@ RUN echo "pullRequestNumber ${PR_NUMBER}"
 RUN echo "repositoryUrl ${TARGET_REPO_URL}"
 RUN echo "========================================================="
 
-WORKDIR /app
+WORKDIR /NotificationSender
 COPY /NotificationSender/NotificationSender/NotificationSender.csproj .
 RUN dotnet restore NotificationSender.csproj -r linux-musl-x64
 COPY /NotificationSender/NotificationSender/ .
 RUN dotnet publish NotificationSender.csproj -p:PublishSingleFile=true -r linux-musl-x64 --self-contained true -p:PublishTrimmed=True -p:TrimMode=Link -c release -o /notificationsender --no-restore
+
+WORKDIR /tests
+COPY ./NotificationSender/NotificationSenderTest/NotificationSenderTest.csproj .
+RUN dotnet restore NotificationSenderTest.csproj -r linux-musl-x64
+COPY ./NotificationSender/NotificationSenderTest/ .
+RUN dotnet build
 
 WORKDIR /notificationsender
 ADD https://sl-repo-dev.s3.us-east-1.amazonaws.com/sealights-dotnet-agent-3.0.1-beta.hotfix-portable.tar.gz sealights-dotnet-agent-3.0.1-beta.hotfix-portable.tar.gz
@@ -60,7 +66,11 @@ else \
     	--includeNamespace "NotificaitonSender.*" --excludeNamespace Microsoft --latestCommit "${LATEST_COMMIT}" --pullRequestNumber "${PR_NUMBER}" --repositoryUrl "${TARGET_REPO_URL}" ; \
 fi
 
-RUN dotnet SL.DotNet.dll scan --buildSessionIdFile buildSessionId --binDir /app/bin/release/net6.0 --token $RM_DEV_SL_TOKEN --ignoreGeneratedCode true
+RUN dotnet SL.DotNet.dll scan --buildSessionIdFile buildSessionId --binDir /tests/bin/Debug/net6.0 --token $RM_DEV_SL_TOKEN --ignoreGeneratedCode true
+
+RUN dotnet SL.DotNet.dll startExecution --buildSessionIdFile buildSessionId --labid=integ_master_813e_SLBoutique --token $RM_DEV_SL_TOKEN --testStage "Unit Tests"
+RUN dotnet SL.DotNet.dll testListener --buildSessionIdFile buildSessionId --labid=integ_master_813e_SLBoutique --token $RM_DEV_SL_TOKEN --workingDir /tests/bin/Debug/net6.0 --target dotnet --targetArgs " test NotificationSenderTest.dll " || true
+RUN dotnet SL.DotNet.dll endExecution --buildSessionIdFile buildSessionId --labid=integ_master_813e_SLBoutique --token $RM_DEV_SL_TOKEN  --testStage "Unit Tests"
 
 # https://mcr.microsoft.com/v2/dotnet/runtime-deps/tags/list
 FROM mcr.microsoft.com/dotnet/runtime-deps:6.0.3-alpine3.15-amd64
