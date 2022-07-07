@@ -28,7 +28,6 @@ namespace NotificaitonSender
              .AddAspNetCoreInstrumentation()
              .AddHttpClientInstrumentation()
              .AddAWSInstrumentation()
-             .AddXRayTraceId()
              .AddOtlpExporter(o =>
              {
                  o.Protocol = OtlpExportProtocol.HttpProtobuf;
