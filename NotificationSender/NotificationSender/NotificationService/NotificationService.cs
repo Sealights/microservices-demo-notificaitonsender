@@ -58,7 +58,7 @@ namespace NotificaitonSender.NotificationService
                 {
                     do
                     {
-                        var msg = await GetMessage(sqsClient, awsConfigs.AwsSqsQueueUrl, awsConfigs.SqsWaitTimeSec, awsConfigs.SqsMaxMessages);
+                        var msg = await GetMessage(sqsClient, awsConfigs.AwsSqsQueueUrl, awsConfigs.SqsMaxMessages, awsConfigs.SqsWaitTimeSec);
                         if (msg.Messages.Count != 0)
                         {
                             if (ProcessMessage(msg.Messages[0]))
