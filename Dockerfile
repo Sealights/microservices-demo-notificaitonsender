@@ -22,7 +22,7 @@ ENV BUILD_NAME ${BUILD_NAME}
 
 # get packages
 COPY requirements.txt .
-RUN pip install -r requirements.txt
+RUN pip install -r NotificationSender/requirements.txt
 
 # show python logs as they occur
 ENV PYTHONUNBUFFERED=0
