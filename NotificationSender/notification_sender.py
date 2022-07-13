@@ -45,6 +45,12 @@ def receive_message():
       QueueUrl=endpoint_url,
       MaxNumberOfMessages=int(sqs_max_messages),
       VisibilityTimeout=0,
+      MessageAttributeNames=[
+        'All'
+      ],
+      AttributeNames=[
+        'SentTimestamp'
+      ],
       WaitTimeSeconds=int(sqs_wait_time_sec)
   )
 
