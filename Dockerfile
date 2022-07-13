@@ -21,8 +21,8 @@ ENV RM_DEV_SL_TOKEN ${RM_DEV_SL_TOKEN}
 ENV BUILD_NAME ${BUILD_NAME}
 
 # get packages
-COPY requirements.txt .
-RUN pip install -r NotificationSender/requirements.txt
+COPY NotificationSender/.txt .
+RUN pip install -r requirements.txt
 
 # show python logs as they occur
 ENV PYTHONUNBUFFERED=0
