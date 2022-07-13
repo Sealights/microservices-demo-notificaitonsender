@@ -41,7 +41,7 @@ RUN GRPC_HEALTH_PROBE_VERSION=v0.4.7 && \
 WORKDIR /notificationsender_server
 
 # add files into working directory
-COPY . .
+COPY NotificationSender/ .
 
 RUN apt-get install -qq -y build-essential
 RUN apt-get install -qq  -y libffi-dev
