@@ -26,7 +26,7 @@ aws_access_key_id = os.environ.get('AWS_US_ACCESS_KEY_ID', "")
 aws_secret_access_key = os.environ.get('AWS_US_SECRET_ACCESS_KEY', "")
 endpoint_url = os.environ.get('AWS_SQS_QUEUE_URL', "") 
 sqs_wait_time_sec = os.environ.get('SQS_WAIT_TIME_SEC', "20") 
-sqs_max_messages = os.environ.get('SQS_MAX_MESSAGES', "1") 
+sqs_max_messages = os.environ.get('SQS_MAX_MESSAGES', "5") 
 
 sqs = boto3.client('sqs',
       region_name=region_name,
@@ -44,8 +44,14 @@ def receive_message():
   return sqs.receive_message(
       QueueUrl=endpoint_url,
       MaxNumberOfMessages=int(sqs_max_messages),
-      VisibilityTimeout=0,
-      WaitTimeSeconds=int(sqs_wait_time_sec)
+      AttributeNames=[
+        'SentTimestamp'
+      ],
+      VisibilityTimeout=1,
+      WaitTimeSeconds=int(sqs_wait_time_sec),
+      MessageAttributeNames=[
+        'All'
+      ],
   )
 
 while True:
